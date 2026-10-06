@@ -1,6 +1,10 @@
 # build output
 dist/
 
+# cloudflare
+.wrangler/
+worker-configuration.d.ts
+
 # generated types
 .astro/
 
