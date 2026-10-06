@@ -18,5 +18,5 @@ export const redirects = {
 	"/tags/": "/archive/",
 	"/links/": "/",
 	"/search/": "/archive/",
-	"/page/2/": "/2/"
+	"/page/2/": "/2/",
 };

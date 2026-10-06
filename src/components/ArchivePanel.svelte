@@ -5,8 +5,10 @@ import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
 import { getPostUrlBySlug } from "../utils/url-utils";
 
-export let tags: string[];
-export let categories: string[];
+// tags / categories 是从 URL 查询参数读出来的，并不是组件 props，
+// 所以声明成局部变量（原来写成 export let 会让页面调用处缺少必填 prop 而类型报错）。
+let tags: string[] = [];
+let categories: string[] = [];
 export let sortedPosts: Post[] = [];
 
 const params = new URLSearchParams(window.location.search);

@@ -11,6 +11,14 @@ import {
 import { onMount } from "svelte";
 import type { LIGHT_DARK_MODE } from "@/types/config.ts";
 
+// 这个组件不接收 props（主题状态由它自己从 localStorage 读）。
+// 显式声明 props 类型，是为了让 `astro check` 不要把它推断成
+// `Record<string, never>`——那种类型会连 `client:only` 一起判成非法属性。
+interface Props {
+	[key: string]: unknown;
+}
+const { ..._rest }: Props = $props();
+
 const seq: LIGHT_DARK_MODE[] = [LIGHT_MODE, DARK_MODE, AUTO_MODE];
 let mode: LIGHT_DARK_MODE = $state(AUTO_MODE);
 
