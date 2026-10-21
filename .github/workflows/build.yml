@@ -65,3 +65,50 @@ jobs:
 
       - name: Run Production Build
         run: pnpm build
+
+  deploy:
+    name: Deploy to Cloudflare
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [check, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        with:
+          node-version: 22
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        with:
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Production Build
+        run: pnpm build
+
+      - name: Restore Wrangler authentication
+        env:
+          WRANGLER_AUTH_CONFIG: ${{ secrets.WRANGLER_AUTH_CONFIG }}
+        run: |
+          test -n "$WRANGLER_AUTH_CONFIG"
+          install -d -m 700 "$HOME/.config/.wrangler/config"
+          printf '%s\n' "$WRANGLER_AUTH_CONFIG" > "$HOME/.config/.wrangler/config/default.toml"
+          chmod 600 "$HOME/.config/.wrangler/config/default.toml"
+
+      - name: Deploy to Cloudflare
+        run: pnpm dlx wrangler@4.151.3 deploy --name vontohn-astro-blog
+
+      - name: Persist rotated Wrangler authentication
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}
+        run: |
+          auth_file="$HOME/.config/.wrangler/config/default.toml"
+          if [ -f "$auth_file" ]; then
+            gh secret set WRANGLER_AUTH_CONFIG --repo "$GITHUB_REPOSITORY" < "$auth_file"
+          fi
